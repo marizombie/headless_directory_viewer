@@ -4,11 +4,11 @@ from PIL import Image
 from io import BytesIO
 from pathlib import Path
 from base64 import b64encode
-from flask import Flask, render_template, Response, request, redirect, url_for, session, make_response, jsonify
+from flask import Flask, render_template, Response, request, redirect, url_for, make_response, jsonify
 
 
 app = Flask(__name__)
-app.secret_key = 'secret'
+session = {}
 images_per_scroll = 16
 limit = 300000
 thumbnail_maxsize = (200, 200)
