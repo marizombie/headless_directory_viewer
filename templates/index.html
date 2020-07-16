@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+    <div style="margin:25px">
+        <input type="text" id="directory_input" placeholder="Path to folder we want to dive in" style="width:300px" />
+        <button id="submit_button" type="submit">Show content</button>
+    </div>
+</body>
+
+<script>
+    var directory_input = document.getElementById('directory_input');
+    var submit_button = document.getElementById('submit_button');
+    submit_button.disabled = true
+
+    directory_input.addEventListener('input', () => {
+        submit_button.disabled = (/^ *$/.test(directory_input.value))
+    })
+
+    function enter_directory() {
+        fetch(`/enter?directory=${directory_input.value}`).then((response) => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            }
+            response.json().then((data) => {
+                if (data) {
+                    alert(data);
+                    return
+                }
+            })
+        })
+    }
+
+    submit_button.addEventListener('click', event => {
+        enter_directory();
+    });
+</script>
+
+</html>
