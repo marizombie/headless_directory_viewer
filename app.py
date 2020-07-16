@@ -44,8 +44,8 @@ def get_files_list(directory, files_list):
 
 
 def get_files(directory_path):
-    return [i for i in os.listdir(
-        directory_path) if os.path.isfile(os.path.join(directory_path, i))]
+    return [i for i in sorted(os.listdir(
+        directory_path)) if os.path.isfile(os.path.join(directory_path, i))]
 
 
 @app.route('/load')
