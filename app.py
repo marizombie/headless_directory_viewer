@@ -28,10 +28,11 @@ def open_image(image_path):
     return image_bytes
 
 
-def get_files_list(files_list):
+def get_files_list(directory, files_list):
     files = []
 
-    for path in tqdm(files_list):
+    for name in tqdm(files_list):
+        path = os.path.join(directory, name)
         image_bytes = open_image(path)
         if not image_bytes:
             continue
@@ -43,11 +44,11 @@ def get_files_list(files_list):
 
 
 def get_files(directory_path):
-    return [os.path.join(directory_path, i) for i in os.listdir(
+    return [i for i in os.listdir(
         directory_path) if os.path.isfile(os.path.join(directory_path, i))]
 
 
-@app.route("/load")
+@app.route('/load')
 def load():
     if not request.args:
         return
@@ -59,20 +60,20 @@ def load():
         res = make_response(jsonify({}), 200)
 
     else:
-        print(f"Returning posts {counter} to {counter + images_per_scroll}")
+        print(f'Returning images from {counter} to {counter + images_per_scroll}')
 
-        files = session['files'][counter: counter + images_per_scroll]
+        file_names = session.get('files')[counter: counter + images_per_scroll]
         res = make_response(
-            jsonify(get_files_list(files)), 200)
+            jsonify(get_files_list(session.get('start_directory'), file_names)), 200)
 
     return res
 
 
-@app.route("/move", methods=['GET'])
+@app.route('/move', methods=['GET'])
 def move_images():
     if not request.args:
         return make_response(jsonify({'Argument list is empty'}), 400)
-
+    
     current_path = session.get('start_directory')
     destination_path = request.args.get('destination')
     checkbox_values = request.args.get('items').split(',')
@@ -100,18 +101,18 @@ def get_directory_path():
         print('Cannot find such directory')
         return make_response(jsonify('Cannot find such directory'), 400)
 
-    session["start_directory"] = directory_path
+    session['start_directory'] = directory_path
     session['files'] = get_files(directory_path)
 
     return redirect('/directory_view')
 
 
-@app.route("/directory_view")
+@app.route('/directory_view')
 def main_view():
     return render_template('directory.html', current_directory=session.get('start_directory'), images_per_scroll=images_per_scroll)
 
 
-@app.route("/")
+@app.route('/')
 def index():
     return render_template('index.html')
 
