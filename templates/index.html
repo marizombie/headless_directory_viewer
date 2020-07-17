@@ -25,21 +25,21 @@
 
 <script src="{{ url_for('static', filename='utils.js') }}"></script>
 <script>
-    var directory_input = document.getElementById('directory_input');
-    var submit_button = document.getElementById('submit_button');
-    submit_button.disabled = true;
+    var directoryInput = document.getElementById('directory_input');
+    var submitButton = document.getElementById('submit_button');
+    submitButton.disabled = true;
+
+    listenClickOnEnter(directoryInput, submitButton)
 
     // Path prompt
-    var pathOptionTemplate = document.querySelector('#path_template');
-    var pathOptionSelector = document.querySelector('#path_options');
 
-    directory_input.addEventListener('input', () => {
-        submit_button.disabled = (/^ *$/.test(directory_input.value));
-        showPrompt(directory_input.value);
+    directoryInput.addEventListener('input', () => {
+        submitButton.disabled = (/^ *$/.test(directoryInput.value));
+        showPrompt(directoryInput.value);
     })
 
     function enter_directory() {
-        fetch(`/enter?directory=${directory_input.value}`).then((response) => {
+        fetch(`/enter?directory=${directoryInput.value}`).then((response) => {
             if (response.redirected) {
                 window.location.href = response.url;
             }
@@ -52,7 +52,7 @@
         })
     }
 
-    submit_button.addEventListener('click', event => {
+    submitButton.addEventListener('click', event => {
         enter_directory();
     });
 </script>

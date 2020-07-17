@@ -77,6 +77,10 @@
             loadButton.disabled = (/^ *$/.test(imageIndexInput.value));
         })
 
+
+        listenClickOnEnter(imageIndexInput, loadButton);
+        listenClickOnEnter(destinationInput, moveButton);
+
         var scroller = document.querySelector("#scroller");
         var checkboxes = document.getElementsByName('checkbox');
         var currentDirectory = `{{current_directory}}`
@@ -121,8 +125,6 @@
         });
 
         // Path prompt
-        var pathOptionTemplate = document.querySelector('#path_template');
-        var pathOptionSelector = document.querySelector('#path_options');
 
         destinationInput.addEventListener('input', () => {
             moveButton.disabled = (/^ *$/.test(destinationInput.value));

@@ -1,3 +1,7 @@
+
+var pathOptionTemplate = document.querySelector('#path_template');
+var pathOptionSelector = document.querySelector('#path_options');
+
 function showPrompt(path) {
     fetch(`/get_path_options?path=${path}`).then((response) => {
         response.json().then((data) => {
@@ -16,4 +20,14 @@ function showPrompt(path) {
             }
         })
     })
+}
+
+
+function listenClickOnEnter(input, button) {
+    input.addEventListener("keyup", event => {
+        if (event.key !== "Enter") return;
+
+        button.click();
+        event.preventDefault();
+    });
 }
