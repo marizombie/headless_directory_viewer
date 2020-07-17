@@ -12,18 +12,30 @@
 
 <body>
     <div style="margin:25px">
-        <input type="text" id="directory_input" placeholder="Path to folder we want to dive in" style="width:300px" />
+        <input type="text" id="directory_input" placeholder="Path to folder we want to dive in" style="width:350px"
+            autocomplete="off" list="path_options" />
+        <datalist id="path_options">
+            <template id="path_template">
+                <option id="path_option"></option>
+            </template>
+        </datalist>
         <button id="submit_button" type="submit">Show content</button>
     </div>
 </body>
 
+<script src="{{ url_for('static', filename='utils.js') }}"></script>
 <script>
     var directory_input = document.getElementById('directory_input');
     var submit_button = document.getElementById('submit_button');
-    submit_button.disabled = true
+    submit_button.disabled = true;
+
+    // Path prompt
+    var pathOptionTemplate = document.querySelector('#path_template');
+    var pathOptionSelector = document.querySelector('#path_options');
 
     directory_input.addEventListener('input', () => {
-        submit_button.disabled = (/^ *$/.test(directory_input.value))
+        submit_button.disabled = (/^ *$/.test(directory_input.value));
+        showPrompt(directory_input.value);
     })
 
     function enter_directory() {

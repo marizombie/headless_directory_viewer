@@ -1,4 +1,5 @@
 import os
+import glob
 from tqdm import tqdm
 from PIL import Image
 from io import BytesIO
@@ -28,7 +29,7 @@ def open_image(image_path):
     return image_bytes
 
 
-def get_files_list(directory, files_list):
+def get_images_data(directory, files_list):
     files = []
 
     for name in tqdm(files_list):
@@ -43,9 +44,23 @@ def get_files_list(directory, files_list):
     return files
 
 
-def get_files(directory_path):
+def get_files_list(directory_path):
     return [i for i in sorted(os.listdir(
         directory_path)) if os.path.isfile(os.path.join(directory_path, i))]
+
+
+def get_directories_list(path):
+    return [os.path.join(path, i) for i in os.listdir(path) if os.path.isdir(i)]
+
+
+def path_completer(text):    
+    if text == '~' or text == '/':
+        text = os.path.expanduser('~')
+
+    if os.path.isdir(text):
+        text += '/'
+
+    return [x for x in glob.glob(text + '*/') if os.path.isdir(x)]
 
 
 @app.route('/load')
@@ -56,7 +71,7 @@ def load():
     counter = int(request.args.get("counter"))
 
     if counter >= limit:
-        print("No more posts")
+        print("No more images")
         res = make_response(jsonify({}), 200)
 
     else:
@@ -64,7 +79,7 @@ def load():
 
         file_names = session.get('files')[counter: counter + images_per_scroll]
         res = make_response(
-            jsonify(get_files_list(session.get('start_directory'), file_names)), 200)
+            jsonify(get_images_data(session.get('start_directory'), file_names)), 200)
 
     return res
 
@@ -83,8 +98,6 @@ def move_images():
         os.mkdir(destination_path)
         print(f'Creating {destination_path} directory')
 
-    print(current_path, destination_path)
-
     removed_counter = 0
     for image_path in checkbox_values:
         new_path = image_path.replace(current_path, destination_path)
@@ -100,6 +113,14 @@ def move_images():
     return make_response(jsonify(f'{removed_counter} images successfully moved to {destination_path}'), 200)
 
 
+@app.route('/get_path_options', methods=['GET'])
+def get_path_options():
+    directory_path = request.args.get('path')
+    path_options = path_completer(directory_path)
+
+    return make_response(jsonify(path_options), 200)
+
+
 @app.route('/enter', methods=['GET'])
 def get_directory_path():
     directory_path = request.args.get('directory')
@@ -109,7 +130,7 @@ def get_directory_path():
         return make_response(jsonify('Cannot find such directory'), 400)
 
     session['start_directory'] = directory_path
-    session['files'] = get_files(directory_path)
+    session['files'] = get_files_list(directory_path)
 
     return redirect('/directory_view')
 

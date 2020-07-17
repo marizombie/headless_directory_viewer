@@ -24,8 +24,16 @@
         </div>
         <div>
             <button id="move_button" type="submit" disabled>Move selected images </button>
-            <input type="text" id="destination_input" placeholder="Destination folder path " style="width: 300px"
-                autocomplete="on" />
+            <input type="text" id="destination_input" placeholder="Destination folder path " style="width: 350px;"
+                autocomplete="off" list="path_options" />
+            <datalist id="path_options">
+                <!-- {% for path in path_options %}
+                <option value="{{ path }}">{{ path }}</option>
+                {% endfor %} -->
+                <template id="path_template">
+                    <option id="path_option"></option>
+                </template>
+            </datalist>
         </div>
     </div>
 </nav>
@@ -36,7 +44,7 @@
             <h3 class="display-4 mb-3">Current directory: {{current_directory}}</h3>
 
             <div id="scroller" class="mb-3">
-                <template id="post_template">
+                <template id="image_template">
                     <div class="card mb-3 animated fadeIn shadow-sm"
                         style="position: relative; width: auto; float: left; max-height: 150">
                         <label style="padding: 3px;">
@@ -56,6 +64,7 @@
 
     </main>
 
+    <script src="{{ url_for('static', filename='utils.js') }}"></script>
     <script>
         // Move & load buttons check area
         let d = document, [destinationInput, moveButton, imageIndexInput, loadButton] = [
@@ -64,11 +73,8 @@
             d.querySelector('#image_index'),
             d.querySelector('#load_button')]
 
-        destinationInput.addEventListener('input', () => {
-            moveButton.disabled = (/^ *$/.test(destinationInput.value))
-        })
         imageIndexInput.addEventListener('input', () => {
-            loadButton.disabled = (/^ *$/.test(imageIndexInput.value))
+            loadButton.disabled = (/^ *$/.test(imageIndexInput.value));
         })
 
         var scroller = document.querySelector("#scroller");
@@ -114,8 +120,17 @@
             moveItems();
         });
 
-        // Lazy loading part
-        var template = document.querySelector('#post_template');
+        // Path prompt
+        var pathOptionTemplate = document.querySelector('#path_template');
+        var pathOptionSelector = document.querySelector('#path_options');
+
+        destinationInput.addEventListener('input', () => {
+            moveButton.disabled = (/^ *$/.test(destinationInput.value));
+            showPrompt(destinationInput.value);
+        })
+
+        // Loading part
+        var imageTemplate = document.querySelector('#image_template');
         var loaded = document.querySelector("#loaded");
         var sentinel = document.querySelector('#sentinel');
 
@@ -132,13 +147,13 @@
                     }
 
                     for (var i = 0; i < files_quantity; i++) {
-                        let template_clone = template.content.cloneNode(true);
+                        let templateClone = imageTemplate.content.cloneNode(true);
 
-                        template_clone.querySelector("#image_bytes").title = `${data[i][0]}`;
-                        template_clone.querySelector("#image_bytes").src = `${data[i][1]}`;
-                        template_clone.querySelector("#checkbox").value = data[i][0];
+                        templateClone.querySelector("#image_bytes").title = `${data[i][0]}`;
+                        templateClone.querySelector("#image_bytes").src = `${data[i][1]}`;
+                        templateClone.querySelector("#checkbox").value = data[i][0];
 
-                        scroller.appendChild(template_clone);
+                        scroller.appendChild(templateClone);
                         counter += 1;
 
                         loaded.innerText = `${counter} items loaded`;
