@@ -19,8 +19,13 @@
     <div class="container">
         <a class="navbar-brand" id="loaded" href="#">0 items loaded</a>
         <div>
-            <button id="move_button" type="submit">Move selected images </button>
-            <input type="text" id="destination_input" placeholder="Destination folder path " />
+            <button id="load_button" type="submit" disabled>Load from index </button>
+            <input type="number" id="image_index" placeholder="0" style="width: 80px" />
+        </div>
+        <div>
+            <button id="move_button" type="submit" disabled>Move selected images </button>
+            <input type="text" id="destination_input" placeholder="Destination folder path " style="width: 300px"
+                autocomplete="on" />
         </div>
     </div>
 </nav>
@@ -52,18 +57,21 @@
     </main>
 
     <script>
-        // Move button check area
-        let d = document, [input, moveButton] = [
-            d.querySelector('[type="text"]'),
-            d.querySelector('#move_button')]
-        moveButton.disabled = true
+        // Move & load buttons check area
+        let d = document, [destinationInput, moveButton, imageIndexInput, loadButton] = [
+            d.querySelector('#destination_input'),
+            d.querySelector('#move_button'),
+            d.querySelector('#image_index'),
+            d.querySelector('#load_button')]
 
-        input.addEventListener('input', () => {
-            moveButton.disabled = (/^ *$/.test(input.value))
+        destinationInput.addEventListener('input', () => {
+            moveButton.disabled = (/^ *$/.test(destinationInput.value))
+        })
+        imageIndexInput.addEventListener('input', () => {
+            loadButton.disabled = (/^ *$/.test(imageIndexInput.value))
         })
 
         var scroller = document.querySelector("#scroller");
-        var destination_input = document.getElementById('destination_input');
         var checkboxes = document.getElementsByName('checkbox');
         var currentDirectory = `{{current_directory}}`
 
@@ -72,7 +80,7 @@
         }
 
         function moveItems() {
-            var destination = destination_input.value;
+            var destination = destinationInput.value;
             if (destination === currentDirectory) {
                 alert(`You are already in ${currentDirectory}`)
                 return;
@@ -144,6 +152,11 @@
                 })
             })
         }
+
+        loadButton.addEventListener('click', event => {
+            counter = parseInt(imageIndexInput.value);
+            loadItems();
+        });
 
         var intersectionObserver = new IntersectionObserver(entries => {
             entries.forEach(entry => {
