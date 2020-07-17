@@ -85,12 +85,19 @@ def move_images():
 
     print(current_path, destination_path)
 
+    removed_counter = 0
     for image_path in checkbox_values:
         new_path = image_path.replace(current_path, destination_path)
         print(f'Moving to {new_path}')
-        Path(image_path).rename(new_path)
+        try:
+            Path(image_path).rename(new_path)
+        except Exception as e:
+            print(image_path, e)
+            continue
+        
+        removed_counter += 1
 
-    return make_response(jsonify(f'Images successfully moved to {destination_path}'), 200)
+    return make_response(jsonify(f'{removed_counter} images successfully moved to {destination_path}'), 200)
 
 
 @app.route('/enter', methods=['GET'])
