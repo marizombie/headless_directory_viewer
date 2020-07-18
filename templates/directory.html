@@ -115,9 +115,20 @@
                 removeElement(checkboxesToRemove[i].parentNode.parentNode);
             }
 
-            fetch(`/move?items=${images}&destination=${destination}`).then((response) => {
-                response.json().then((data) => { if (data) { alert(data); } })
-            })
+            json = {
+                "destination": destination,
+                "items": images
+            }
+
+            fetch(`/move`, {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify(json),
+                cache: "no-cache",
+                headers: new Headers({
+                    "content-type": "application/json"
+                })
+            }).then((response) => response.json()).then((data) => { if (data) { alert(data); } });
         }
 
         moveButton.addEventListener('click', event => {

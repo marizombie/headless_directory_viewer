@@ -84,21 +84,20 @@ def load():
     return res
 
 
-@app.route('/move', methods=['GET'])
+@app.route('/move', methods=['POST'])
 def move_images():
-    if not request.args:
-        return make_response(jsonify({'Argument list is empty'}), 400)
-    
     current_path = session.get('start_directory')
-    destination_path = request.args.get('destination')
-    checkbox_values = request.args.get('items').split(',')
+
+    json = request.get_json()
+    destination_path = json['destination']
+    checkbox_values = json['items']
 
     print('Checkbox values', checkbox_values)
     if not os.path.isdir(destination_path):
         os.mkdir(destination_path)
         print(f'Creating {destination_path} directory')
 
-    removed_counter = 0
+    moved_counter = 0
     for image_path in checkbox_values:
         new_path = image_path.replace(current_path, destination_path)
         print(f'Moving to {new_path}')
@@ -108,9 +107,9 @@ def move_images():
             print(image_path, e)
             continue
         
-        removed_counter += 1
+        moved_counter += 1
 
-    return make_response(jsonify(f'{removed_counter} images successfully moved to {destination_path}'), 200)
+    return make_response(jsonify(f'{moved_counter} image(s) successfully moved to {destination_path}'), 200)
 
 
 @app.route('/get_path_options', methods=['GET'])
