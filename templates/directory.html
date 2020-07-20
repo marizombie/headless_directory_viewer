@@ -48,9 +48,7 @@
                     <div class="card mb-3 animated fadeIn shadow-sm"
                         style="position: relative; width: auto; float: left; max-height: 150">
                         <label style="padding: 3px;">
-                            <a id="original_image_link" target="_blank">
-                                <img id="image_bytes" width="200" />
-                            </a>
+                            <img id="image_bytes" width="200" />
                             <input type="checkbox" id="checkbox" name="checkbox"
                                 style="position: absolute; right: 5px; top: 5px;" />
                         </label>
@@ -176,11 +174,13 @@
                         templateClone.querySelector("#checkbox").value = data[i][0];
 
                         templateClone.querySelector("#image_bytes").addEventListener('mouseenter', async (event) => {
-                            var linkNode = event.srcElement.parentNode;
-                            if (linkNode.href) return;
-                            getFullImage(event.srcElement.title).then(res =>
-                                linkNode.setAttribute('href', res));
+                            var imageNode = event.srcElement;
+                            if (imageNode.tag) return;
+                            imageNode.tag = 'set'
+                            getFullImage(imageNode.title).then(res =>
+                                imageNode.setAttribute('src', res));
                         });
+
 
                         scroller.appendChild(templateClone);
                         counter += 1;
