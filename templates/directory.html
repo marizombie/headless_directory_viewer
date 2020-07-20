@@ -48,7 +48,9 @@
                     <div class="card mb-3 animated fadeIn shadow-sm"
                         style="position: relative; width: auto; float: left; max-height: 150">
                         <label style="padding: 3px;">
-                            <img id="image_bytes" width="200" />
+                            <a id="original_image_link" target="_blank">
+                                <img id="image_bytes" width="200" />
+                            </a>
                             <input type="checkbox" id="checkbox" name="checkbox"
                                 style="position: absolute; right: 5px; top: 5px;" />
                         </label>
@@ -140,7 +142,14 @@
         destinationInput.addEventListener('input', () => {
             moveButton.disabled = (/^ *$/.test(destinationInput.value));
             showPrompt(destinationInput.value);
-        })
+        });
+
+        async function getFullImage(image_path) {
+            return fetch(`/get_fullsize_image?path=${image_path}`).then(async (response) => {
+                const jsonData = await response.json();
+                return jsonData.toString();
+            });
+        }
 
         // Loading part
         var imageTemplate = document.querySelector('#image_template');
@@ -166,11 +175,17 @@
                         templateClone.querySelector("#image_bytes").src = `${data[i][1]}`;
                         templateClone.querySelector("#checkbox").value = data[i][0];
 
+                        templateClone.querySelector("#image_bytes").addEventListener('mouseenter', async (event) => {
+                            var linkNode = event.srcElement.parentNode;
+                            if (linkNode.href) return;
+                            getFullImage(event.srcElement.title).then(res =>
+                                linkNode.setAttribute('href', res));
+                        });
+
                         scroller.appendChild(templateClone);
                         counter += 1;
 
                         loaded.innerText = `${counter} items loaded`;
-
                     }
 
                     if (files_quantity < `{{images_per_scroll}}`) {

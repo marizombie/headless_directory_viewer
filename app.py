@@ -11,8 +11,14 @@ from flask import Flask, render_template, Response, request, redirect, url_for, 
 app = Flask(__name__)
 session = {}
 images_per_scroll = 16
-limit = 300000
+limit = 30000
 thumbnail_maxsize = (200, 200)
+
+
+def get_bytes(image):
+     with BytesIO() as output:
+        image.save(output, 'jpeg')
+        return output.getvalue()
 
 
 def open_image(image_path):
@@ -23,9 +29,7 @@ def open_image(image_path):
         print(e)
         return
 
-    with BytesIO() as output:
-        image.save(output, 'jpeg')
-        image_bytes = output.getvalue()
+    image_bytes = get_bytes(image)   
     return image_bytes
 
 
@@ -63,10 +67,27 @@ def path_completer(text):
     return [x for x in glob.glob(text + '*/') if os.path.isdir(x)]
 
 
+@app.route('/get_fullsize_image')
+def get_fullsize_image():
+    if not request.args:
+        return make_response(jsonify("No arguments"), 400)
+
+    image_path = request.args.get("path")
+    try:
+        image = Image.open(image_path).convert('RGB')
+    except Exception as e:
+        print(e)
+        return make_response(jsonify("Error while opening image"), 404)
+    
+    image_data = f"data:image/png;base64,{b64encode(get_bytes(image)).decode('utf-8')}"
+
+    return make_response(jsonify(image_data), 200)
+
+
 @app.route('/load')
 def load():
     if not request.args:
-        return
+        return make_response(jsonify("No arguments"), 400)
 
     counter = int(request.args.get("counter"))
 
