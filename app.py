@@ -67,12 +67,11 @@ def path_completer(text):
     return [x for x in glob.glob(text + '*/') if os.path.isdir(x)]
 
 
-@app.route('/get_fullsize_image')
+@app.route('/get_fullsize_image', methods=['POST'])
 def get_fullsize_image():
-    if not request.args:
-        return make_response(jsonify("No arguments"), 400)
+    json = request.get_json()
 
-    image_path = request.args.get("path")
+    image_path = json.get("path")
     try:
         image = Image.open(image_path).convert('RGB')
     except Exception as e:
@@ -101,7 +100,7 @@ def load():
         file_names = session.get('files')[counter: counter + images_per_scroll]
         res = make_response(
             jsonify(get_images_data(session.get('start_directory'), file_names)), 200)
-
+    
     return res
 
 
@@ -110,8 +109,8 @@ def move_images():
     current_path = session.get('start_directory')
 
     json = request.get_json()
-    destination_path = json['destination']
-    checkbox_values = json['items']
+    destination_path = json.get('destination')
+    checkbox_values = json.get('items')
 
     print('Checkbox values', checkbox_values)
     if not os.path.isdir(destination_path):

@@ -143,7 +143,19 @@
         });
 
         async function getFullImage(image_path) {
-            return fetch(`/get_fullsize_image?path=${image_path}`).then(async (response) => {
+            json = {
+                "path": image_path
+            }
+
+            return fetch(`/get_fullsize_image`, {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify(json),
+                cache: "no-cache",
+                headers: new Headers({
+                    "content-type": "application/json"
+                })
+            }).then(async (response) => {
                 const jsonData = await response.json();
                 return jsonData.toString();
             });
