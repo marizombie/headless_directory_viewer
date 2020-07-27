@@ -181,7 +181,8 @@
                     for (var i = 0; i < files_quantity; i++) {
                         let templateClone = imageTemplate.content.cloneNode(true);
 
-                        templateClone.querySelector("#image_bytes").title = `${data[i][0]}`;
+                        var imageSize = data[i][2];
+                        templateClone.querySelector("#image_bytes").title = `${data[i][0]}, size: (${imageSize[0]}x${imageSize[1]})`;
                         templateClone.querySelector("#image_bytes").src = `${data[i][1]}`;
                         templateClone.querySelector("#checkbox").value = data[i][0];
 
@@ -189,7 +190,7 @@
                             var imageNode = event.srcElement;
                             if (imageNode.tag) return;
                             imageNode.tag = 'set'
-                            getFullImage(imageNode.title).then(res =>
+                            getFullImage(imageNode.title.split(", size: ")[0]).then(res =>
                                 imageNode.setAttribute('src', res));
                         });
 
@@ -200,7 +201,8 @@
                         loaded.innerText = `${counter} items loaded`;
                     }
 
-                    if (files_quantity < `{{images_per_scroll}}`) {
+                    if (files_quantity < `{{images_per_scroll}}` - 1) {
+                        console.log(`files quantity:${files_quantity}, images_per_scroll: {{images_per_scroll}}`)
                         sentinel.innerHTML = "No more files";
                         return;
                     }
@@ -214,9 +216,6 @@
         });
 
         var intersectionObserver = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                console.log(entry.intersectionRatio);
-            })
             if (entries[0].intersectionRatio <= 0) {
                 return;
             }
