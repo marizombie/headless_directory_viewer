@@ -4,7 +4,9 @@ from tqdm import tqdm
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
+from random import choice
 from base64 import b64encode
+from string import ascii_lowercase, digits
 from flask import Flask, render_template, Response, request, redirect, url_for, make_response, jsonify
 
 
@@ -15,6 +17,9 @@ limit = 30000
 thumbnail_maxsize = (200, 200)
 
 
+def generate_session_password():
+    return ''.join([choice(ascii_lowercase + digits) for i in range(15)])
+
 def get_bytes(image):
      with BytesIO() as output:
         image.save(output, 'jpeg')
@@ -24,13 +29,14 @@ def get_bytes(image):
 def open_image(image_path):
     try:
         image = Image.open(image_path).convert('RGB')
+        size = image.size
         image.thumbnail(thumbnail_maxsize, Image.ANTIALIAS)
     except Exception as e:
         print(e)
-        return
+        return None, None
 
     image_bytes = get_bytes(image)   
-    return image_bytes
+    return image_bytes, size
 
 
 def get_images_data(directory, files_list):
@@ -38,12 +44,12 @@ def get_images_data(directory, files_list):
 
     for name in tqdm(files_list):
         path = os.path.join(directory, name)
-        image_bytes = open_image(path)
+        image_bytes, image_size = open_image(path)
         if not image_bytes:
             continue
 
         image_source = f"data:image/png;base64,{b64encode(image_bytes).decode('utf-8')}"
-        files.append([path, image_source])
+        files.append([path, image_source, image_size])
 
     return files
 
@@ -71,12 +77,12 @@ def path_completer(text):
 def get_fullsize_image():
     json = request.get_json()
 
-    image_path = json.get("path")
+    image_path = json.get('path')
     try:
         image = Image.open(image_path).convert('RGB')
     except Exception as e:
         print(e)
-        return make_response(jsonify("Error while opening image"), 404)
+        return make_response(jsonify(f'Error while opening image, {image_path}'), 404)
     
     image_data = f"data:image/png;base64,{b64encode(get_bytes(image)).decode('utf-8')}"
 
@@ -161,9 +167,23 @@ def main_view():
 
 @app.route('/')
 def index():
+    if not session.get('password'):
+        return render_template('login.html', message = session.get('message'))
     return render_template('index.html')
 
 
-if __name__ == "__main__":
-    # debug is set to true to avoid jinja templates caching
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    password = request.form.get('password')
+    if password != app.secret_key:
+        session['message'] = 'You shall not pass'
+        return redirect('/')       
+    session['password'] = password
+    return redirect('/')
+
+
+if __name__ == "__main__":   
+    app.secret_key = generate_session_password()
+    print('Current session code:', app.secret_key)
+    # debug is set to true to avoid jinja templates caching 
     app.run(debug=True, host='0.0.0.0', port=8888)

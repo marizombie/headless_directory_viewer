@@ -4,7 +4,6 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -19,7 +18,7 @@
                 <option id="path_option"></option>
             </template>
         </datalist>
-        <button id="submit_button" type="submit">Show content</button>
+        <button id="submit_button" type="submit" disabled>Show content</button>
     </div>
 </body>
 
@@ -27,9 +26,8 @@
 <script>
     var directoryInput = document.getElementById('directory_input');
     var submitButton = document.getElementById('submit_button');
-    submitButton.disabled = true;
 
-    listenClickOnEnter(directoryInput, submitButton)
+    listenClickOnEnter(directoryInput, submitButton);
 
     // Path prompt
 

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+    <div style="margin:25px" class="container">
+        {% if message %}
+        <p>{{ message }}</p>
+        {% endif %}
+
+        <form action="/login" method="POST">
+            <input type="password" name="password" id="password" placeholder="Session code" style="width: 180px" />
+            <button id="login_button" type="submit" disabled>Login </button>
+        </form>
+    </div>
+</body>
+
+<script>
+    var passwordInput = document.getElementById('password');
+    var loginButton = document.getElementById('login_button');
+
+    passwordInput.addEventListener('input', () => {
+        loginButton.disabled = (/^ *$/.test(passwordInput.value));
+    })
+</script>
