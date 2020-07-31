@@ -12,6 +12,7 @@ Work is in progress. Stay tuned!
 - install requirements using `pip install -r requirements.txt`
 - just run `python app.py`
 - if you are on headless machine, use its ip address to connect, otherwise - use localhost
+- enter session code from console to form input and you are all ready
 
 ## Features
 - lazy loading
