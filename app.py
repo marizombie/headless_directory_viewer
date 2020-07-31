@@ -20,6 +20,7 @@ thumbnail_maxsize = (200, 200)
 def generate_session_password():
     return ''.join([choice(ascii_lowercase + digits) for i in range(15)])
 
+
 def get_bytes(image):
      with BytesIO() as output:
         image.save(output, 'jpeg')
@@ -162,7 +163,11 @@ def get_directory_path():
 
 @app.route('/directory_view')
 def main_view():
-    return render_template('directory.html', current_directory=session.get('start_directory'), images_per_scroll=images_per_scroll)
+    total = 0
+    if session.get('files'):
+        total = len(session.get('files'))
+    return render_template('directory.html', current_directory=session.get('start_directory'), 
+    images_per_scroll=images_per_scroll, total=total)
 
 
 @app.route('/')

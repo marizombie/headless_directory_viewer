@@ -77,7 +77,6 @@
             loadButton.disabled = (/^ *$/.test(imageIndexInput.value));
         })
 
-
         listenClickOnEnter(imageIndexInput, loadButton);
         listenClickOnEnter(destinationInput, moveButton);
 
@@ -198,10 +197,10 @@
                         scroller.appendChild(templateClone);
                         counter += 1;
 
-                        loaded.innerText = `${counter} items loaded`;
+                        loaded.innerText = `${counter} from {{ total }} items loaded`;
                     }
 
-                    if (files_quantity < `{{images_per_scroll}}` - 1) {
+                    if (files_quantity < `{{images_per_scroll}}`) {
                         console.log(`files quantity:${files_quantity}, images_per_scroll: {{images_per_scroll}}`)
                         sentinel.innerHTML = "No more files";
                         return;
