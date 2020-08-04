@@ -1,12 +1,6 @@
 import os
-import glob
-from tqdm import tqdm
-from PIL import Image
-from io import BytesIO
+from utils import *
 from pathlib import Path
-from random import choice
-from base64 import b64encode
-from string import ascii_lowercase, digits
 from flask import Flask, render_template, Response, request, redirect, url_for, make_response, jsonify
 
 
@@ -14,64 +8,6 @@ app = Flask(__name__)
 session = {}
 images_per_scroll = 16
 limit = 30000
-thumbnail_maxsize = (200, 200)
-
-
-def generate_session_password():
-    return ''.join([choice(ascii_lowercase + digits) for i in range(15)])
-
-
-def get_bytes(image):
-     with BytesIO() as output:
-        image.save(output, 'jpeg')
-        return output.getvalue()
-
-
-def open_image(image_path):
-    try:
-        image = Image.open(image_path).convert('RGB')
-        size = image.size
-        image.thumbnail(thumbnail_maxsize, Image.ANTIALIAS)
-    except Exception as e:
-        print(e)
-        return None, None
-
-    image_bytes = get_bytes(image)   
-    return image_bytes, size
-
-
-def get_images_data(directory, files_list):
-    files = []
-
-    for name in tqdm(files_list):
-        path = os.path.join(directory, name)
-        image_bytes, image_size = open_image(path)
-        if not image_bytes:
-            continue
-
-        image_source = f"data:image/png;base64,{b64encode(image_bytes).decode('utf-8')}"
-        files.append([path, image_source, image_size])
-
-    return files
-
-
-def get_files_list(directory_path):
-    return [i for i in sorted(os.listdir(
-        directory_path)) if os.path.isfile(os.path.join(directory_path, i))]
-
-
-def get_directories_list(path):
-    return [os.path.join(path, i) for i in os.listdir(path) if os.path.isdir(i)]
-
-
-def path_completer(text):    
-    if text == '~' or text == '/':
-        text = os.path.expanduser('~')
-
-    if os.path.isdir(text):
-        text += '/'
-
-    return [x for x in glob.glob(text + '*/') if os.path.isdir(x)]
 
 
 @app.route('/get_fullsize_image', methods=['POST'])
@@ -84,7 +20,7 @@ def get_fullsize_image():
     except Exception as e:
         print(e)
         return make_response(jsonify(f'Error while opening image, {image_path}'), 404)
-    
+
     image_data = f"data:image/png;base64,{b64encode(get_bytes(image)).decode('utf-8')}"
 
     return make_response(jsonify(image_data), 200)
@@ -102,12 +38,13 @@ def load():
         res = make_response(jsonify({}), 200)
 
     else:
-        print(f'Returning images from {counter} to {counter + images_per_scroll}')
+        print(
+            f'Returning images from {counter} to {counter + images_per_scroll}')
 
         file_names = session.get('files')[counter: counter + images_per_scroll]
         res = make_response(
             jsonify(get_images_data(session.get('start_directory'), file_names)), 200)
-    
+
     return res
 
 
@@ -133,7 +70,7 @@ def move_images():
         except Exception as e:
             print(image_path, e)
             continue
-        
+
         moved_counter += 1
 
     return make_response(jsonify(f'{moved_counter} image(s) successfully moved to {destination_path}'), 200)
@@ -166,14 +103,14 @@ def main_view():
     total = 0
     if session.get('files'):
         total = len(session.get('files'))
-    return render_template('directory.html', current_directory=session.get('start_directory'), 
-    images_per_scroll=images_per_scroll, total=total)
+    return render_template('directory.html', current_directory=session.get('start_directory'),
+                           images_per_scroll=images_per_scroll, total=total)
 
 
 @app.route('/')
 def index():
     if not session.get('password'):
-        return render_template('login.html', message = session.get('message'))
+        return render_template('login.html', message=session.get('message'))
     return render_template('index.html')
 
 
@@ -182,13 +119,13 @@ def login():
     password = request.form.get('password')
     if password != app.secret_key:
         session['message'] = 'You shall not pass'
-        return redirect('/')       
+        return redirect('/')
     session['password'] = password
     return redirect('/')
 
 
-if __name__ == "__main__":   
+if __name__ == "__main__":
     app.secret_key = generate_session_password()
     print('Current session code:', app.secret_key)
-    # debug is set to true to avoid jinja templates caching 
+    # debug is set to true to avoid jinja templates caching
     app.run(debug=True, host='0.0.0.0', port=8888)
