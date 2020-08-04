@@ -73,6 +73,8 @@ def move_images():
 
         moved_counter += 1
 
+    session['files'] = get_files_list(current_path)
+
     return make_response(jsonify(f'{moved_counter} image(s) successfully moved to {destination_path}'), 200)
 
 

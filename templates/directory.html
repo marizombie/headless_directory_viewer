@@ -95,6 +95,8 @@
                 return;
             }
 
+            total = `{{ total }}`
+
             var images = [];
             var checkboxesToRemove = [];
             for (var i = 0; i < checkboxes.length; i++) {
@@ -112,7 +114,10 @@
 
             for (var i = 0; i < checkboxesToRemove.length; i++) {
                 removeElement(checkboxesToRemove[i].parentNode.parentNode);
+                total -= 1;
             }
+
+            loaded.innerText = `${counter} from ${total} items loaded`;
 
             json = {
                 "destination": destination,
