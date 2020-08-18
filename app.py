@@ -63,8 +63,9 @@ def move_images():
 
     moved_counter = 0
     for image_path in checkbox_values:
-        new_path = image_path.replace(current_path, destination_path)
-        print(f'Moving to {new_path}')
+        image_name = os.path.basename(image_path)
+        new_path = os.path.join(destination_path, image_name)
+        print(f'Moving {image_name} to {destination_path}')
         try:
             Path(image_path).rename(new_path)
         except Exception as e:
