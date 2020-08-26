@@ -1,4 +1,5 @@
 import os
+import argparse
 from utils import *
 from pathlib import Path
 from flask import Flask, render_template, Response, request, redirect, url_for, make_response, jsonify
@@ -128,7 +129,13 @@ def login():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', default=8080, type=int)
+
+    args = parser.parse_args()
+    port_number = args.port
+
     app.secret_key = generate_session_password()
     print('Current session code:', app.secret_key)
     # debug is set to true to avoid jinja templates caching
-    app.run(debug=True, host='0.0.0.0', port=8888)
+    app.run(debug=True, host='0.0.0.0', port=port_number)
