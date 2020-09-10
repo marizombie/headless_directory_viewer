@@ -55,7 +55,7 @@ def get_files_list(directory_path):
 
 
 def get_directories_list(path):
-    return [os.path.join(path, i) for i in os.listdir(path) if os.path.isdir(i)]
+    return sorted([os.path.join(path, i) for i in os.listdir(path) if os.path.isdir(i)])
 
 
 def path_completer(text):
@@ -65,4 +65,4 @@ def path_completer(text):
     if os.path.isdir(text):
         text += '/'
 
-    return [x for x in glob.glob(text + '*/') if os.path.isdir(x)]
+    return sorted([x for x in glob.glob(text + '*/') if os.path.isdir(x)])
