@@ -90,7 +90,7 @@
         function removeElement(element) {
             scroller.removeChild(element)
         }
-
+        //TODO: fix total after move & scroll
         function moveItems() {
             var destination = destinationInput.value;
             if (destination === currentDirectory) {
@@ -126,6 +126,9 @@
                 "destination": destination,
                 "items": images
             }
+
+            checkboxCounter = 0;
+            selected.innerText = `${checkboxCounter} items selected`;
 
             fetch(`/move`, {
                 method: "POST",
