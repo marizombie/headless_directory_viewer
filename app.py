@@ -59,7 +59,7 @@ def move_images():
 
     print('Checkbox values', checkbox_values)
     if not os.path.isdir(destination_path):
-        os.mkdir(destination_path)
+        os.makedirs(destination_path)
         print(f'Creating {destination_path} directory')
 
     moved_counter = 0
