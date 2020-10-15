@@ -85,20 +85,19 @@
 
         var scroller = document.querySelector("#scroller");
         var checkboxes = document.getElementsByName('checkbox');
-        var currentDirectory = `{{current_directory}}`
+        var currentDirectory = `{{ current_directory }}`
+        var totalCounter = `{{ total }}`
 
         function removeElement(element) {
             scroller.removeChild(element)
         }
-        //TODO: fix total after move & scroll
+
         function moveItems() {
             var destination = destinationInput.value;
             if (destination === currentDirectory) {
                 alert(`You are already in ${currentDirectory}`)
                 return;
             }
-
-            total = `{{ total }}`
 
             var images = [];
             var checkboxesToRemove = [];
@@ -117,10 +116,10 @@
 
             for (var i = 0; i < checkboxesToRemove.length; i++) {
                 removeElement(checkboxesToRemove[i].parentNode.parentNode);
-                total -= 1;
+                totalCounter -= 1;
             }
 
-            loaded.innerText = `${loadCounter} from ${total} items loaded`;
+            loaded.innerText = `${loadCounter} from ${totalCounter} items loaded`;
 
             json = {
                 "destination": destination,
@@ -220,7 +219,7 @@
                         scroller.appendChild(templateClone);
                         loadCounter += 1;
 
-                        loaded.innerText = `${loadCounter} from {{ total }} items loaded`;
+                        loaded.innerText = `${loadCounter} from ${totalCounter} items loaded`;
                     }
 
                     if (files_quantity < `{{images_per_scroll}}`) {
