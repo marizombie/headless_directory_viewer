@@ -113,18 +113,20 @@ def main_view():
 
 @app.route('/')
 def index():
-    if not session.get('password'):
+    ip = request.remote_addr
+    if not session.get(ip):
         return render_template('login.html', message=session.get('message'))
     return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    ip = request.remote_addr
     password = request.form.get('password')
     if password != app.secret_key:
-        session['message'] = 'You shall not pass'
+        session['message'] = 'Wrong code, try again'
         return redirect('/')
-    session['password'] = password
+    session[ip] = password
     return redirect('/')
 
 
