@@ -16,13 +16,11 @@ def get_fullsize_image():
     json = request.get_json()
 
     image_path = json.get('path')
-    try:
-        image = Image.open(image_path).convert('RGB')
-    except Exception as e:
-        print(e)
+    image_bytes, size = open_image(image_path)
+    if not image_bytes:
         return make_response(jsonify(f'Error while opening image, {image_path}'), 404)
 
-    image_data = f"data:image/png;base64,{b64encode(get_bytes(image)).decode('utf-8')}"
+    image_data = f"data:image/png;base64,{b64encode(image_bytes).decode('utf-8')}"
 
     return make_response(jsonify(image_data), 200)
 

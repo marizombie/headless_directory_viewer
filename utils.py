@@ -3,6 +3,7 @@ import glob
 from PIL import Image
 from tqdm import tqdm
 from io import BytesIO
+from pathlib import Path
 from random import choice
 from base64 import b64encode
 from string import ascii_lowercase, digits
@@ -15,22 +16,27 @@ def generate_session_password():
     return ''.join([choice(ascii_lowercase + digits) for i in range(15)])
 
 
-def get_bytes(image):
+def get_bytes(image, suffix):
     with BytesIO() as output:
-        image.save(output, 'jpeg')
+        image.save(output, suffix)
         return output.getvalue()
 
 
 def open_image(image_path):
+    is_png = Path(image_path).suffix == '.png'
     try:
-        image = Image.open(image_path).convert('RGB')
+        if is_png:
+            image = Image.open(image_path).convert('RGBA')
+        else:
+            image = Image.open(image_path).convert('RGB')
         size = image.size
         image.thumbnail(thumbnail_maxsize, Image.ANTIALIAS)
     except Exception as e:
         print(e)
         return None, None
 
-    image_bytes = get_bytes(image)
+    suffix = 'png' if is_png else 'jpeg'
+    image_bytes = get_bytes(image, suffix)
     return image_bytes, size
 
 
