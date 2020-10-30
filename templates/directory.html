@@ -117,6 +117,7 @@
             for (var i = 0; i < checkboxesToRemove.length; i++) {
                 removeElement(checkboxesToRemove[i].parentNode.parentNode);
                 totalCounter -= 1;
+                loadCounter -= 1;
             }
 
             loaded.innerText = `${loadCounter} from ${totalCounter} items loaded`;

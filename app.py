@@ -8,7 +8,6 @@ from flask import Flask, render_template, Response, request, redirect, url_for, 
 app = Flask(__name__)
 session = {}
 images_per_scroll = 16
-limit = 30000
 
 
 @app.route('/get_fullsize_image', methods=['POST'])
@@ -32,17 +31,12 @@ def load():
 
     counter = int(request.args.get("counter"))
 
-    if counter >= limit:
-        print("No more images")
-        res = make_response(jsonify({}), 200)
+    print(
+        f'Loading images from {counter} to {counter + images_per_scroll}')
 
-    else:
-        print(
-            f'Returning images from {counter} to {counter + images_per_scroll}')
-
-        file_names = session.get('files')[counter: counter + images_per_scroll]
-        res = make_response(
-            jsonify(get_images_data(session.get('start_directory'), file_names)), 200)
+    file_names = session.get('files')[counter: counter + images_per_scroll]
+    res = make_response(
+        jsonify(get_images_data(session.get('start_directory'), file_names)), 200)
 
     return res
 
