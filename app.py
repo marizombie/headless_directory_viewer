@@ -15,7 +15,7 @@ def get_fullsize_image():
     json = request.get_json()
 
     image_path = json.get('path')
-    image_bytes, size = open_image(image_path)
+    image_bytes, size = open_image(image_path, resize=False)
     if not image_bytes:
         return make_response(jsonify(f'Error while opening image, {image_path}'), 404)
 

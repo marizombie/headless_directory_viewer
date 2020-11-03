@@ -22,7 +22,7 @@ def get_bytes(image, suffix):
         return output.getvalue()
 
 
-def open_image(image_path):
+def open_image(image_path, resize=True):
     is_png = Path(image_path).suffix == '.png'
     try:
         if is_png:
@@ -30,7 +30,8 @@ def open_image(image_path):
         else:
             image = Image.open(image_path).convert('RGB')
         size = image.size
-        image.thumbnail(thumbnail_maxsize, Image.ANTIALIAS)
+        if resize:
+            image.thumbnail(thumbnail_maxsize, Image.ANTIALIAS)
     except Exception as e:
         print(e)
         return None, None
