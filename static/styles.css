@@ -8,9 +8,15 @@
   max-height: 0;
 }
 
-/* body {
-  background-color: lightblue;
-} */
+body {
+  background-color: #e3e3e3;  
+}
+
+label{
+  color: #677;
+  margin: 0px 10px 0px 0px;
+  float:center
+}
 
 .img-magnifier-container {
   position: relative;
@@ -24,4 +30,54 @@
   cursor: none;
   width: 170px;
   height: 170px;
+}
+
+.btn {
+  height: 40px;
+  width: 40px;
+}
+
+.btn.magnifier {
+  background: url(icons/magnifier.png);  
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 35px;
+}
+
+.btn.menu {
+  background: url(icons/menu.png);  
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 30px;
+}
+
+.btn.load {
+  background: url(icons/load.png);  
+  background-position: top;
+  background-repeat: no-repeat;
+  background-size: 35px;
+}
+
+.btn.move {
+  background: url(icons/arrow.png);  
+  background-position: top;
+  background-repeat: no-repeat;
+  background-size: 35px;
+}
+
+input {
+  border: 1px solid #677;  
+  border-radius:3px;
+  max-width: 750px;
+}
+
+input:focus {
+  outline: none !important;
+  border: 1px solid #3498DB;  
+  box-shadow: 0 0 3px #3498DB;
+  border-radius:3px;  
+}
+
+input.directory{
+  min-width: 350px;
 }

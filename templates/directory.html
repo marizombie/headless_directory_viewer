@@ -21,26 +21,28 @@
         <div>
             <h4 class="display-5 mb-2">Current directory: {{current_directory}}</h4>
         </div>
-        <a class="navbar-brand" id="loaded" href="#">0 items loaded</a>
 
-        <button id="menu_toggle">Show menu</button>
-        <button id="magnifier_toggle">Use magnifier</button>
+        <div>
+            <label id="loaded" href="#">0 items loaded</label>
+            <button class="btn menu" id="menu_toggle" title="Show menu"></button>
+            <button class="btn magnifier" id="magnifier_toggle" title="Use magnifier"></button>
+        </div>
 
-        <div id="menu">
-            <div>
-                <button id="load_button" type="submit" disabled>Load from index </button>
+        <div id="menu" width="100%">
+            <div style="float: left; margin-right: 100px;">
                 <input type="number" id="image_index" placeholder="0" style="width: 80px" />
+                <button class="btn load" id="load_button" type="submit" title="Load from index" disabled></button>
             </div>
-            <div>
-                <a id="selected">0 items selected</a>
-                <button id="move_button" type="submit" disabled>Move selected images </button>
-                <input type="text" id="destination_input" placeholder="Destination folder path " style="width: 350px;"
-                    autocomplete="off" list="path_options" />
-                <datalist id="path_options">
+            <div style="float: right;">
+                <label id="selected">0 items selected</label>
+                <input class="directory" type="text" id="destination_input" placeholder="Destination folder path "
+                    autocomplete="off" list="path_options" oninput="this.setAttribute('size', this.value.length)" />
+                <datalist class="datalist" id="path_options">
                     <template id="path_template">
                         <option id="path_option"></option>
                     </template>
                 </datalist>
+                <button class="btn move" id="move_button" type="submit" title="Move selected images" disabled></button>
             </div>
         </div>
     </div>
