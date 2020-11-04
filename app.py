@@ -7,7 +7,7 @@ from flask import Flask, render_template, Response, request, redirect, url_for, 
 
 app = Flask(__name__)
 session = {}
-images_per_scroll = 16
+images_per_scroll = 10
 
 
 @app.route('/get_fullsize_image', methods=['POST'])

@@ -262,9 +262,8 @@
         });
 
         var intersectionObserver = new IntersectionObserver(entries => {
-            if (entries[0].intersectionRatio <= 0) {
-                return;
-            }
+            console.log(entries)
+            if (!entries[0].isIntersecting) { return; }
             loadItems();
         });
 
