@@ -236,7 +236,7 @@
                             imageNode.tag = 'set'
                             getFullImage(imageNode.title.split(", size: ")[0]).then(res => {
                                 imageNode.setAttribute('src', res);
-                                if (magnifierOn) { magnify(imageNode); }
+                                // if (magnifierOn) { magnify(imageNode); }
                             });
                         });
 
@@ -248,7 +248,7 @@
                     }
 
                     if (files_quantity < `{{images_per_scroll}}`) {
-                        console.log(`files quantity:${files_quantity}, images_per_scroll: {{images_per_scroll}}`)
+                        // console.log(`files quantity:${files_quantity}, images_per_scroll: {{images_per_scroll}}`)
                         sentinel.innerHTML = "No more files";
                         return;
                     }
@@ -262,7 +262,6 @@
         });
 
         var intersectionObserver = new IntersectionObserver(entries => {
-            console.log(entries)
             if (!entries[0].isIntersecting) { return; }
             loadItems();
         });
