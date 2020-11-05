@@ -7,7 +7,8 @@ function magnify(img, zoom = 3) {
     glass.setAttribute("class", "img-magnifier-glass");
 
     /* Insert magnifier glass: */
-    img.parentElement.insertBefore(glass, img);
+    var glassOwner = img.parentElement;
+    glassOwner.insertBefore(glass, img);
 
     /* Set background properties for the magnifier glass: */
     glass.style.backgroundImage = "url('" + img.src + "')";
@@ -25,11 +26,11 @@ function magnify(img, zoom = 3) {
     glass.addEventListener("touchmove", moveMagnifier);
     img.addEventListener("touchmove", moveMagnifier);
 
-    img.parentElement.addEventListener("mouseleave", dropMagnifier);
+    glassOwner.addEventListener("mouseleave", dropMagnifier);
 
     function dropMagnifier() {
-        if (img.parentElement.contains(glass)) {
-            img.parentElement.removeChild(glass);
+        if (glassOwner.contains(glass)) {
+            glassOwner.removeChild(glass);
         }
     }
 

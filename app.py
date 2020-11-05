@@ -7,7 +7,7 @@ from flask import Flask, render_template, Response, request, redirect, url_for, 
 
 app = Flask(__name__)
 session = {}
-images_per_scroll = 10
+images_per_scroll = 16
 
 
 @app.route('/get_fullsize_image', methods=['POST'])
@@ -34,7 +34,8 @@ def load():
     print(
         f'Loading images from {counter} to {counter + images_per_scroll}')
 
-    file_names = session.get('files')[counter: counter + images_per_scroll]
+    file_names = session.get('file_names')[
+        counter: counter + images_per_scroll]
     res = make_response(
         jsonify(get_images_data(session.get('start_directory'), file_names)), 200)
 
@@ -67,7 +68,7 @@ def move_images():
 
         moved_counter += 1
 
-    session['files'] = get_files_list(current_path)
+    session['file_names'] = get_files_list(current_path)
 
     return make_response(jsonify(f'{moved_counter} image(s) successfully moved to {destination_path}'), 200)
 
@@ -89,7 +90,7 @@ def get_directory_path():
         return make_response(jsonify('Cannot find such directory'), 400)
 
     session['start_directory'] = directory_path
-    session['files'] = get_files_list(directory_path)
+    session['file_names'] = get_files_list(directory_path)
 
     return redirect('/directory_view')
 
@@ -97,8 +98,8 @@ def get_directory_path():
 @app.route('/directory_view')
 def main_view():
     total = 0
-    if session.get('files'):
-        total = len(session.get('files'))
+    if session.get('file_names'):
+        total = len(session.get('file_names'))
     return render_template('directory.html', current_directory=session.get('start_directory'),
                            images_per_scroll=images_per_scroll, total=total)
 

@@ -7,12 +7,13 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
     <div style="margin:25px">
-        <input type="text" id="directory_input" placeholder="Path to folder we want to dive in" style="width:350px"
-            autocomplete="off" list="path_options" />
+        <input class="directory" type="text" id="directory_input" placeholder="Path to folder we want to dive in"
+            autocomplete="off" list="path_options" oninput="this.setAttribute('size', this.value.length)" />
         <datalist id="path_options">
             <template id="path_template">
                 <option id="path_option"></option>
