@@ -18,22 +18,23 @@
 
 <nav class="navbar navbar-light bg-light sticky-top">
     <div class="container">
-        <div>
-            <h4 class="display-5 mb-2">Current directory: {{current_directory}}</h4>
-        </div>
-
+        <h4 class="display-5 mb-2">Current directory: {{current_directory}}</h4>
         <div>
             <label id="loaded" href="#">0 items loaded</label>
             <button class="btn menu" id="menu_toggle" title="Show menu"></button>
             <button class="btn magnifier" id="magnifier_toggle" title="Use magnifier"></button>
+            <button class="btn label" id="sidebar_toggle" title="Open labeling sidebar"></button>
         </div>
 
         <div id="menu" width="100%">
             <div style="float: left; margin-right: 100px;">
-                <input type="number" id="image_index" placeholder="0" style="width: 80px" />
+                <button class="btn index" id="index_button" type="submit"
+                    title="Toggle image indexes visibility"></button>
+                <input type="number" id="image_index" placeholder="0" style="width: 65px" />
                 <button class="btn load" id="load_button" type="submit" title="Load from index" disabled></button>
             </div>
             <div style="float: right;">
+                <!--TODO: add select all / deselect here-->
                 <label id="selected">0 items selected</label>
                 <input class="directory" type="text" id="destination_input" placeholder="Destination folder path "
                     autocomplete="off" list="path_options" oninput="this.setAttribute('size', this.value.length)" />
@@ -50,14 +51,15 @@
 
 <body>
     <main class="mt-3">
-        <div class="container" style="width: 100%;" name="images_area">
+        <div class="container" id="images_area">
             <div id="scroller" class="mb-3">
                 <template id="image_template">
                     <div class="card mb-3 animated fadeIn shadow-sm"
-                        style="position: relative; width: auto; float: left; max-height: 150">
+                        style="position: relative; width: auto; float: left; max-height: 160">
                         <label style="padding: 3px;">
+                            <label class="image-index" id=image-index></label>
                             <div class="img-magnifier-container">
-                                <img id="image_bytes" width="200" />
+                                <img id="image_bytes" class="lazy-image" />
                             </div>
                             <input type="checkbox" id="checkbox" name="checkbox"
                                 style="position: absolute; right: 5px; top: 5px;" />
@@ -71,27 +73,58 @@
                 <div class="spinner-border" role="status"></div>
             </div>
         </div>
-
+        <div id="sidebar" class="sidebar">
+            <h4>Labeling</h4>
+            <span>Labels for selected images:</span>
+            <!-- <button id="load-labels-button" type="submit" title="Show labels">Show labels</button> -->
+            <span id="labels"></span>
+            <!-- <ul class="sidebar-list">
+                <li class="sidebar-item">Item 1</a></li>
+                <li class="sidebar-item">Item 2</a></li>
+                <li class="sidebar-item">Item 3</a></li>
+                <li class="sidebar-item">Item 4</a></li>
+            </ul> -->
+            <div style="margin-top: 20px;">
+                <span>Edit labels for selected images:</span>
+                <input class="label" type="text" id="label-input" placeholder="Label1 label2 label3..."
+                    oninput="this.setAttribute('size', this.value.length)" />
+            </div>
+            <div>
+                <button class="btn addlabel" id="add-labels-button" title="Add labels to selected images"></button>
+                <button class="btn rmlabel" id="remove-labels-button"
+                    title="Remove labels from selected images"></button>
+            </div>
+            <div style="margin-top: 20px;">
+                <span>Export all labels</span>
+                <button class="btn export" id="export-labels-button" type="submit" title="Export labels"></button>
+            </div>
+        </div>
     </main>
 
     <script src="{{ url_for('static', filename='utils.js') }}"></script>
     <script src="{{ url_for('static', filename='magnifier.js') }}"></script>
     <script>
-        var menu = document.querySelector('#menu');
-        var menu_toggle = document.querySelector('#menu_toggle');
-        menu_toggle.addEventListener('click', function () {
-            menu.classList.toggle('hide');
-        });
-        var magnifier_toggle = document.querySelector("#magnifier_toggle");
+        const menu = document.querySelector('#menu');
+        const menuToggle = document.querySelector('#menu_toggle');
+        menuToggle.addEventListener('click', event => { menu.classList.toggle('hide'); });
+        const magnifierToggle = document.querySelector("#magnifier_toggle");
         var magnifierOn = false;
-        magnifier_toggle.addEventListener('click', function () {
-            magnifierOn = !magnifierOn;
+        magnifierToggle.addEventListener('click', event => { magnifierOn = !magnifierOn; });
+
+        const imagesDiv = document.querySelector('#images_area')
+
+        const sidebar = document.querySelector('#sidebar');
+        const sidebarToggle = document.querySelector('#sidebar_toggle');
+        sidebarToggle.addEventListener('click', function () {
+            sidebar.classList.toggle('show');
+            imagesDiv.classList.toggle("move-to-left");
         });
 
         // Move & load buttons check area
-        let d = document, [destinationInput, moveButton, imageIndexInput, loadButton] = [
+        let d = document, [destinationInput, moveButton, indexButton, imageIndexInput, loadButton] = [
             d.querySelector('#destination_input'),
             d.querySelector('#move_button'),
+            d.querySelector('#index_button'),
             d.querySelector('#image_index'),
             d.querySelector('#load_button')]
 
@@ -99,41 +132,100 @@
             loadButton.disabled = (/^ *$/.test(imageIndexInput.value));
         })
 
+        indexButton.addEventListener('click', event => {
+            imageIndexes.forEach(index => index.classList.toggle('hide'));
+        });
+
+        moveButton.addEventListener('click', event => { moveItems(); });
+
+        destinationInput.addEventListener('input', () => {
+            moveButton.disabled = (/^ *$/.test(destinationInput.value));
+            showPrompt(destinationInput.value);
+        });
+
+        loadButton.addEventListener('click', event => {
+            images[parseInt(imageIndexInput.value)].scrollIntoView();
+        });
+
+        const scroller = document.querySelector("#scroller");
+        var checkboxes = document.getElementsByName('checkbox');
+        var currentDirectory = `{{ current_directory }}`;
+        var totalCounter = `{{ total }}`;
+
+        var labelsSpan = sidebar.querySelector("#labels");
+        // var loadLabelsButton = document.querySelector("#load-labels-button");
+        // loadLabelsButton.addEventListener('click', event => { getLabels(); });
+        var exportLabelsButton = document.querySelector("#export-labels-button");
+        exportLabelsButton.addEventListener('click', event => { exportLabels(); });
+        var addLabelsButton = sidebar.querySelector("#add-labels-button");
+        addLabelsButton.addEventListener('click', event => {
+            editLabels(`/add_labels`);
+            getLabels();
+        })
+        var removeLabelsButton = sidebar.querySelector("#remove-labels-button");
+        removeLabelsButton.addEventListener('click', event => {
+            editLabels(`/remove_labels`);
+            getLabels();
+        });
+        var labelInput = sidebar.querySelector("#label-input");
+        labelInput.addEventListener('input', () => {
+            addLabelsButton.disabled = (/^ *$/.test(labelInput.value));
+            removeLabelsButton.disabled = (/^ *$/.test(labelInput.value));
+        })
+        var downloadLink = document.createElement('a');
+        downloadLink.download = "labels.csv";
+
+        var imageTemplate = document.querySelector('#image_template');
+        var loaded = document.querySelector("#loaded");
+        var selected = document.querySelector("#selected");
+        const sentinel = document.querySelector('#sentinel');
+
+        var loadCounter = 0;
+        var checkboxCounter = 0;
+        var images = [];
+        var imageIndexes = [];
+
+        const interactSettings = {
+            root: document.querySelector('#mt-3'),
+            rootMargin: '0px 0px 200px 0px'
+        };
+
+        const intersectionObserver = new IntersectionObserver(onIntersection, interactSettings);
+
         listenClickOnEnter(imageIndexInput, loadButton);
         listenClickOnEnter(destinationInput, moveButton);
 
-        var scroller = document.querySelector("#scroller");
-        var checkboxes = document.getElementsByName('checkbox');
-        var currentDirectory = `{{ current_directory }}`
-        var totalCounter = `{{ total }}`
+        loadItems()
+
+        // Methods
 
         function removeElement(element) {
             scroller.removeChild(element)
         }
 
         function moveItems() {
-            var destination = destinationInput.value;
+            let destination = destinationInput.value;
             if (destination === currentDirectory) {
                 alert(`You are already in ${currentDirectory}`)
                 return;
             }
 
-            var images = [];
-            var checkboxesToRemove = [];
-            for (var i = 0; i < checkboxes.length; i++) {
+            let imageIndexes = [];
+            let checkboxesToRemove = [];
+            for (let i = 0; i < checkboxes.length; i++) {
                 if (checkboxes[i].checked) {
-                    var checkbox = checkboxes[i];
-                    images.push(checkbox.value);
+                    const checkbox = checkboxes[i]
+                    imageIndexes.push(checkbox.value);
                     checkboxesToRemove.push(checkbox);
                 }
             }
 
-            if (!images.length) {
+            if (!imageIndexes.length) {
                 alert("Images are not chosen");
                 return;
             }
 
-            for (var i = 0; i < checkboxesToRemove.length; i++) {
+            for (let i = 0; i < checkboxesToRemove.length; i++) {
                 removeElement(checkboxesToRemove[i].parentNode.parentNode);
                 totalCounter -= 1;
                 loadCounter -= 1;
@@ -143,7 +235,7 @@
 
             json = {
                 "destination": destination,
-                "items": images
+                "indexes": imageIndexes
             }
 
             checkboxCounter = 0;
@@ -160,16 +252,43 @@
             }).then((response) => response.json()).then((data) => { if (data) { alert(data); } });
         }
 
-        moveButton.addEventListener('click', event => {
-            moveItems();
-        });
-
         // Path prompt
 
-        destinationInput.addEventListener('input', () => {
-            moveButton.disabled = (/^ *$/.test(destinationInput.value));
-            showPrompt(destinationInput.value);
-        });
+        async function getImages(loadImages) {
+            let images_len = loadImages.length
+            let pathList = [];
+            loadImages.forEach(image => {
+                pathList.push(image.title)
+            });
+
+            json = {
+                "pathList": pathList
+            }
+
+            return fetch(`/get_images`, {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify(json),
+                cache: "no-cache",
+                headers: new Headers({
+                    "content-type": "application/json"
+                })
+            }).then(async (response) => {
+                const res = await response.json();
+                for (let i = 0; i < res.length; i++) {
+                    const image = loadImages[i];
+                    image.setAttribute('src', res[i][0]);
+                    const imageSize = res[i][1];
+                    image.title += `, size: (${imageSize[0]}x${imageSize[1]})`
+                    image.onload = () => {
+                        image.classList.toggle('loaded', true);
+                    }
+                    loadCounter += 1;
+                }
+                loaded.innerText = `${loadCounter} from ${totalCounter} items loaded`;
+                if (loadCounter == totalCounter) { sentinel.innerHTML = "No more files"; }
+            });
+        }
 
         async function getFullImage(image_path) {
             json = {
@@ -191,32 +310,23 @@
         }
 
         // Loading part
-        var imageTemplate = document.querySelector('#image_template');
-        var loaded = document.querySelector("#loaded");
-        var selected = document.querySelector("#selected");
-        var sentinel = document.querySelector('#sentinel');
-
-        var loadCounter = 0;
-        var checkboxCounter = 0;
 
         function loadItems() {
-            fetch(`/load?counter=${loadCounter}`).then((response) => {
+            fetch(`/load`).then((response) => {
                 response.json().then((data) => {
-                    var files_quantity = data.length;
+                    let files_quantity = data.length;
 
                     if (!files_quantity) {
                         sentinel.innerHTML = "No more files";
                         return;
                     }
 
-                    for (var i = 0; i < files_quantity; i++) {
+                    for (let i = 0; i < files_quantity; i++) {
                         let templateClone = imageTemplate.content.cloneNode(true);
 
-                        var imageSize = data[i][2];
-                        templateClone.querySelector("#image_bytes").title = `${data[i][0]}, size: (${imageSize[0]}x${imageSize[1]})`;
-                        templateClone.querySelector("#image_bytes").src = `${data[i][1]}`;
-                        var checkbox = templateClone.querySelector("#checkbox")
-                        checkbox.value = data[i][0];
+                        templateClone.querySelector("#image_bytes").title = `${data[i][0]}`;
+                        const checkbox = templateClone.querySelector("#checkbox");
+                        checkbox.value = i;
 
                         checkbox.addEventListener('change', function () {
                             if (this.checked) {
@@ -225,49 +335,125 @@
                                 checkboxCounter -= 1;
                             }
                             selected.innerText = `${checkboxCounter} items selected`;
+                            getLabels();
                         });
 
+                        const indexLabel = templateClone.querySelector("#image-index");
+                        indexLabel.innerHTML = i;
+
                         templateClone.querySelector("#image_bytes").addEventListener('mouseenter', async (event) => {
-                            var imageNode = event.srcElement;
+                            let imageNode = event.srcElement;
                             if (imageNode.tag) {
                                 if (magnifierOn) { magnify(imageNode); }
                                 return;
                             }
-                            imageNode.tag = 'set'
+                            imageNode.classList.toggle('loaded', false);
                             getFullImage(imageNode.title.split(", size: ")[0]).then(res => {
                                 imageNode.setAttribute('src', res);
+                                imageNode.classList.toggle('loaded', true);
+                                imageNode.tag = 'set'
                                 if (magnifierOn) { magnify(imageNode); }
                             });
                         });
 
 
                         scroller.appendChild(templateClone);
-                        loadCounter += 1;
-
-                        loaded.innerText = `${loadCounter} from ${totalCounter} items loaded`;
                     }
-
-                    if (files_quantity < `{{images_per_scroll}}`) {
-                        console.log(`files quantity:${files_quantity}, images_per_scroll: {{images_per_scroll}}`)
-                        sentinel.innerHTML = "No more files";
-                        return;
-                    }
+                    images = [...document.querySelectorAll('.lazy-image')];
+                    images.forEach(image => intersectionObserver.observe(image));
+                    imageIndexes = [...document.querySelectorAll(".image-index")];
                 })
             })
         }
 
-        loadButton.addEventListener('click', event => {
-            loadCounter = parseInt(imageIndexInput.value);
-            loadItems();
-        });
+        function onIntersection(imageEntites) {
+            let loadImages = [];
+            imageEntites.forEach(intersectionEntity => {
+                if (intersectionEntity.isIntersecting) {
+                    intersectionObserver.unobserve(intersectionEntity.target);
+                    loadImages.push(intersectionEntity.target)
+                }
+            });
+            getImages(loadImages);
+        }
 
-        var intersectionObserver = new IntersectionObserver(entries => {
-            console.log(entries)
-            if (!entries[0].isIntersecting) { return; }
-            loadItems();
-        });
+        // Labels part
 
-        intersectionObserver.observe(sentinel);
+        function editLabels(endpoint) {
+            let imageIndexes = [];
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    const checkbox = checkboxes[i]
+                    imageIndexes.push(checkbox.value);
+                }
+            }
+
+            if (!imageIndexes.length) {
+                alert("Images are not chosen");
+                return;
+            }
+
+            let json = {
+                "indexes": imageIndexes,
+                'labels': labelInput.value
+            }
+
+            return fetch(endpoint, {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify(json),
+                cache: "no-cache",
+                headers: new Headers({
+                    "content-type": "application/json"
+                })
+            }).then((response) => response.json()).then((data) => { if (data) { alert(data); } });
+        }
+
+        async function getLabels() {
+            let imageIndexes = [];
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    const checkbox = checkboxes[i]
+                    imageIndexes.push(checkbox.value);
+                }
+            }
+
+            if (!imageIndexes.length) {
+                labelsSpan.innerHTML = '';
+                return;
+            }
+
+            let json = {
+                "indexes": imageIndexes
+            }
+
+            return fetch(`/get_labels`, {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify(json),
+                cache: "no-cache",
+                headers: new Headers({
+                    "content-type": "application/json"
+                })
+            }).then(async (response) => {
+                const res = await response.json();
+                console.log(res)
+                labelsSpan.innerHTML = res;
+            });
+        }
+
+        function exportLabels() {
+            fetch(`/export_labels`).then((response) => {
+                response.json().then((data) => {
+                    let csvContent = "data:text/csv;charset=utf-8,"
+                        + data.map(e => e.join(",")).join("\n");
+
+                    downloadLink.href = csvContent;
+                    downloadLink.click();
+                })
+            });
+        }
+
     </script>
 
 </body>

@@ -2,73 +2,163 @@ import os
 import argparse
 from utils import *
 from pathlib import Path
-from flask import Flask, render_template, Response, request, redirect, url_for, make_response, jsonify
+from classes import *
+import pandas as pd
+from flask import Flask, render_template, Response, request, redirect, url_for, make_response, jsonify, send_file
 
 
 app = Flask(__name__)
-session = {}
-images_per_scroll = 16
+# TODO: clear session data by timeout
+sessions = {}
+
+
+# def check_session(user_ip):
+#     session = sessions.get(user_ip)
+#     if not session:
+#         return redirect('/login')
+#     else:
+#         return session
+
+
+@app.route('/get_labels', methods=['POST'])
+def get_labels():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    json = request.get_json()
+    image_indexes = json.get('indexes')
+    print('images', image_indexes)
+
+    labels = []
+    for index in image_indexes:
+        image = session.images[int(index)]
+        labels.append(image.labels)
+        print(index, image.labels)
+
+    print('all labels', labels[:10])
+    common_labels = set(labels[0]).intersection(*labels[1:])
+    print('intersect', common_labels)
+
+    return make_response(jsonify(list(common_labels)), 200)
+
+
+@app.route('/add_labels', methods=['POST'])
+def add_labels():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    json = request.get_json()
+    image_indexes = json.get('indexes')
+    labels = json.get('labels').split(' ')
+    print('adding', labels)
+    print('images', image_indexes)
+
+    for index in image_indexes:
+        index = int(index)
+        session.add_labels_to_image(index, labels)
+
+    return make_response(jsonify(f'Labels added successfully'), 200)
+
+
+@app.route('/remove_labels', methods=['POST'])
+def remove_labels():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    json = request.get_json()
+    image_indexes = json.get('indexes')
+    labels = json.get('labels').split(' ')
+    print('removing', labels, 'from', image_indexes)
+
+    for index in image_indexes:
+        index = int(index)
+        session.remove_labels_from_image(index, labels)
+
+    return make_response(jsonify(f'Labels removed successfully'), 200)
+
+
+@app.route('/export_labels')
+def export_labels():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    images = session.images
+
+    rows = [['images', 'labels']]
+
+    for i in images:
+        labels = ' '.join(i.labels)
+        name = i.location
+        rows.append([name, labels])
+    return make_response(jsonify(rows), 200)
+
+
+@app.route('/get_images', methods=['POST'])
+def get_image():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    json = request.get_json()
+    image_pathes = json.get('pathList')
+    files = []
+    for path in image_pathes:
+        image = session.get_image_by_path(path)
+        image.load()
+        files.append([image.image_data, image.size])
+
+    return make_response(jsonify(files), 200)
 
 
 @app.route('/get_fullsize_image', methods=['POST'])
 def get_fullsize_image():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
     json = request.get_json()
-
     image_path = json.get('path')
-    image_bytes, size = open_image(image_path, resize=False)
-    if not image_bytes:
-        return make_response(jsonify(f'Error while opening image, {image_path}'), 404)
-
-    image_data = f"data:image/png;base64,{b64encode(image_bytes).decode('utf-8')}"
-
-    return make_response(jsonify(image_data), 200)
+    image = session.get_image_by_path(image_path)
+    image.load_fullres()
+    return make_response(jsonify(image.image_data), 200)
 
 
 @app.route('/load')
 def load():
-    if not request.args:
-        return make_response(jsonify("No arguments"), 400)
 
-    counter = int(request.args.get("counter"))
+    images = sessions.get(
+        request.remote_addr).images
 
-    print(
-        f'Loading images from {counter} to {counter + images_per_scroll}')
+    files = []
+    for image in images:
+        files.append([image.location])
 
-    file_names = session.get('file_names')[
-        counter: counter + images_per_scroll]
-    res = make_response(
-        jsonify(get_images_data(session.get('start_directory'), file_names)), 200)
-
-    return res
+    return make_response(jsonify(files), 200)
 
 
 @app.route('/move', methods=['POST'])
 def move_images():
-    current_path = session.get('start_directory')
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
 
     json = request.get_json()
     destination_path = json.get('destination')
-    checkbox_values = json.get('items')
+    image_indexes = json.get('indexes')
 
-    print('Checkbox values', checkbox_values)
     if not os.path.isdir(destination_path):
         os.makedirs(destination_path)
         print(f'Creating {destination_path} directory')
 
     moved_counter = 0
-    for image_path in checkbox_values:
-        image_name = os.path.basename(image_path)
-        new_path = os.path.join(destination_path, image_name)
-        print(f'Moving {image_name} to {destination_path}')
-        try:
-            Path(image_path).rename(new_path)
-        except Exception as e:
-            print(image_path, e)
-            continue
-
-        moved_counter += 1
-
-    session['file_names'] = get_files_list(current_path)
+    for index in image_indexes:
+        image = session.images[int(index)]
+        if image.change_location(destination_path):
+            moved_counter += 1
 
     return make_response(jsonify(f'{moved_counter} image(s) successfully moved to {destination_path}'), 200)
 
@@ -89,37 +179,45 @@ def get_directory_path():
         print('Cannot find such directory')
         return make_response(jsonify('Cannot find such directory'), 400)
 
-    session['start_directory'] = directory_path
-    session['file_names'] = get_files_list(directory_path)
+    user_ip = request.remote_addr
+
+    session = sessions.get(user_ip)
+    session.set_directory(directory_path)
 
     return redirect('/directory_view')
 
 
 @app.route('/directory_view')
 def main_view():
-    total = 0
-    if session.get('file_names'):
-        total = len(session.get('file_names'))
-    return render_template('directory.html', current_directory=session.get('start_directory'),
-                           images_per_scroll=images_per_scroll, total=total)
+    # TODO: add check
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    total = session.total
+    current_directory = session.current_directory
+    return render_template('directory.html', current_directory=current_directory, total=total)
 
 
 @app.route('/')
 def index():
-    ip = request.remote_addr
-    if not session.get(ip):
-        return render_template('login.html', message=session.get('message'))
+    session = sessions.get(request.remote_addr)
+    if not session or not session.password:
+        return render_template('login.html')
+    session.message = ''
     return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    ip = request.remote_addr
+    user_ip = request.remote_addr
     password = request.form.get('password')
+    session = ImageSession(user_ip)
+    sessions[user_ip] = session
     if password != app.secret_key:
-        session['message'] = 'Wrong code, try again'
-        return redirect('/')
-    session[ip] = password
+        session.message = 'Wrong code, try again'
+        return render_template('login.html', message=session.message)
+    session.password = password
     return redirect('/')
 
 

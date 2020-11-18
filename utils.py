@@ -1,5 +1,6 @@
 import os
 import glob
+from classes import ImageFile
 from PIL import Image
 from tqdm import tqdm
 from io import BytesIO
