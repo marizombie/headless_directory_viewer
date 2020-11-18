@@ -355,10 +355,9 @@
                                 if (magnifierOn) { magnify(imageNode); }
                             });
                         });
-
-
                         scroller.appendChild(templateClone);
                     }
+
                     images = [...document.querySelectorAll('.lazy-image')];
                     images.forEach(image => intersectionObserver.observe(image));
                     imageIndexes = [...document.querySelectorAll(".image-index")];
