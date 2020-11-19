@@ -93,6 +93,13 @@ label{
   background-size: 35px;
 }
 
+.btn.names {
+  background: url(icons/export-names.png);  
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 35px;
+}
+
 .btn.index {
   background: url(icons/indexes.png);  
   background-position: top;
@@ -118,13 +125,13 @@ input.directory{
 }
 
 input.label{
-  min-width: 90px;
+  min-width: 180px;
   max-width: 250px;
 }
 
 .sidebar {
   padding-left: 10px;
-  padding-top: 200px;
+  padding-top: 180px;
   height: 100%;
   width: 0px;
   opacity: 0;
@@ -143,13 +150,12 @@ input.label{
 
 .move-to-left {
   padding-right: 10px;
-  margin-right: 10px;
+  /* margin-right: 10px; */
   transform: translateX(-270px);
+  margin-left: 240px;
 }
 
 img {
-  /* height: 100%;
-  width: 100%; */
   width: 200px;
   min-height: 100px;
   -o-object-fit: cover;

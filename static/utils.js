@@ -1,6 +1,8 @@
 
 var pathOptionTemplate = document.querySelector('#path_template');
 var pathOptionSelector = document.querySelector('#path_options');
+var exportOptionTemplate = document.querySelector('#export_template');
+var exportOptionSelector = document.querySelector('#export_options');
 
 function showPrompt(path) {
     fetch(`/get_path_options?path=${path}`).then((response) => {
@@ -19,7 +21,27 @@ function showPrompt(path) {
                 pathOptionSelector.appendChild(templateClone);
             }
         })
-    })
+    });
+}
+
+function showExportPrompt(path) {
+    fetch(`/get_path_options?path=${path}`).then((response) => {
+        response.json().then((data) => {
+            var options_quantity = data.length;
+            exportOptionSelector.innerHTML = "";
+
+            if (!options_quantity) {
+                return;
+            }
+
+            for (var i = 0; i < options_quantity; i++) {
+                let templateClone = exportOptionTemplate.content.cloneNode(true);
+
+                templateClone.querySelector("#export_option").value = `${data[i]}`;
+                exportOptionSelector.appendChild(templateClone);
+            }
+        })
+    });
 }
 
 

@@ -80,8 +80,66 @@ def remove_labels():
     return make_response(jsonify(f'Labels removed successfully'), 200)
 
 
-@app.route('/export_labels')
+@app.route('/export_imagenames', methods=['POST'])
+def export_imagenames():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    json = request.get_json()
+    image_indexes = json.get('indexes')
+    export_path = json.get('path').rstrip('/')
+
+    Path(export_path).parent.mkdir(parents=True, exist_ok=True)
+
+    if not export_path.endswith('.txt'):
+        export_path += '/image-names.txt'
+
+    names = []
+
+    for index in image_indexes:
+        index = int(index)
+        image = session.images[index]
+        names.append(image.location + '\n')
+
+    with open(export_path, 'w') as f:
+        f.writelines(names)
+
+    return make_response(jsonify(f'Names successfully saved to {export_path}'), 200)
+
+
+@app.route('/export_labels', methods=['POST'])
 def export_labels():
+    session = sessions.get(request.remote_addr)
+    if not session:
+        return redirect('/login')
+
+    json = request.get_json()
+    image_indexes = json.get('indexes')
+    export_path = json.get('path').rstrip('/')
+
+    Path(export_path).parent.mkdir(parents=True, exist_ok=True)
+
+    if not export_path.endswith('.csv'):
+        export_path += '/labels.csv'
+
+    names = []
+    labels = []
+
+    for index in image_indexes:
+        index = int(index)
+        image = session.images[index]
+        names.append(image.location)
+        labels.append(' '.join(image.labels))
+
+    df = pd.DataFrame({"names": names, "labels": labels})
+    df.to_csv(export_path, index=False)
+
+    return make_response(jsonify(f'Labels successfully saved to {export_path}'), 200)
+
+
+@app.route('/export_labels_local')
+def export_labels_local():
     session = sessions.get(request.remote_addr)
     if not session:
         return redirect('/login')
@@ -129,7 +187,6 @@ def get_fullsize_image():
 
 @app.route('/load')
 def load():
-
     images = sessions.get(
         request.remote_addr).images
 
