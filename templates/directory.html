@@ -35,6 +35,8 @@
             </div>
             <div style="float: right;">
                 <!--TODO: add select all / deselect here-->
+                <input class="select" id="select-all-checkbox" type="checkbox" title="Select all images"
+                    style="margin-right: 5px;" />
                 <label id="selected">0 items selected</label>
                 <input class="directory" type="text" id="destination_input" placeholder="Destination folder path "
                     autocomplete="off" list="path_options" oninput="this.setAttribute('size', this.value.length)" />
@@ -198,6 +200,8 @@
         var imageTemplate = document.querySelector('#image_template');
         var loaded = document.querySelector("#loaded");
         var selected = document.querySelector("#selected");
+        var selectCheckbox = document.querySelector("#select-all-checkbox");
+        selectCheckbox.addEventListener('change', () => { toggleSelectAll(); });
         const sentinel = document.querySelector('#sentinel');
 
         var loadCounter = 0;
@@ -461,7 +465,6 @@
             });
         }
 
-        //TODO: change to selected logic when add select all button
         function exportLabels() {
             let imageIndexes = [];
             for (let i = 0; i < checkboxes.length; i++) {
@@ -523,6 +526,7 @@
         }
 
         //TODO: change to selected logic when add select all button
+        //TODO: use it
         function exportLabelsLocally() {
             fetch(`/export_labels_local`).then((response) => {
                 response.json().then((data) => {
@@ -533,6 +537,14 @@
                     downloadLink.click();
                 })
             });
+        }
+
+        // Other methods
+
+        function toggleSelectAll() {
+            for (let i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = !checkboxes[i].checked;
+            }
         }
 
     </script>
