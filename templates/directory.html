@@ -70,9 +70,9 @@
                 </template>
             </div>
 
-            <!-- element to trigger the IntersectionObserver -->
             <div class="d-flex justify-content-center mb-3" id="sentinel" style="clear: left;">
-                <div class="spinner-border" role="status"></div>
+                No more files
+                <!-- <div class="spinner-border" role="status"></div> -->
             </div>
         </div>
         <div id="sidebar" class="sidebar">
@@ -260,7 +260,7 @@
             json = {
                 "destination": destination,
                 "indexes": imageIndexes
-            }
+            };
 
             checkboxCounter = 0;
             selected.innerText = `${checkboxCounter} items selected`;
@@ -282,7 +282,7 @@
             let images_len = loadImages.length
             let pathList = [];
             loadImages.forEach(image => {
-                pathList.push(image.title)
+                pathList.push(image.title);
             });
 
             json = {
@@ -310,7 +310,7 @@
                     loadCounter += 1;
                 }
                 loaded.innerText = `${loadCounter} from ${totalCounter} items loaded`;
-                if (loadCounter == totalCounter) { sentinel.innerHTML = "No more files"; }
+                // if (loadCounter == totalCounter) { sentinel.innerHTML = "No more files"; }
             });
         }
 
@@ -340,10 +340,10 @@
                 response.json().then((data) => {
                     let files_quantity = data.length;
 
-                    if (!files_quantity) {
-                        sentinel.innerHTML = "No more files";
-                        return;
-                    }
+                    // if (!files_quantity) {
+                    //     sentinel.innerHTML = "No more files";
+                    //     return;
+                    // }
 
                     for (let i = 0; i < files_quantity; i++) {
                         let templateClone = imageTemplate.content.cloneNode(true);

@@ -25,10 +25,8 @@ def get_bytes(image, suffix):
 def open_image(image_path, resize=True):
     is_png = Path(image_path).suffix == '.png'
     try:
-        if is_png:
-            image = Image.open(image_path).convert('RGBA')
-        else:
-            image = Image.open(image_path).convert('RGB')
+        convert_mode = 'RGBA' if is_png else 'RGB'
+        image = Image.open(image_path).convert(convert_mode)
         size = image.size
         if resize:
             image.thumbnail(thumbnail_maxsize, Image.ANTIALIAS)
@@ -81,6 +79,7 @@ class ImageFile:
             print(image_path, e)
             return False
 
+        # TODO: implement ctrl+z for move
         self.previous_location = self.location
         self.location = new_path
         print(f'Moving {name} to {new_directory}')
