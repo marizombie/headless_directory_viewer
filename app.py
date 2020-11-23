@@ -59,7 +59,14 @@ def add_labels():
         index = int(index)
         session.add_labels_to_image(index, labels)
 
-    return make_response(jsonify(f'Labels added successfully'), 200)
+    labels_count = [0*len(labels)]
+    for image in session.images:
+        for index, label in enumerate(labels):
+            if label in image.labels:
+                labels_count[index] += 1
+
+    response_data = [f'Labels added successfully', labels_count]
+    return make_response(jsonify(response_data), 200)
 
 
 @app.route('/remove_labels', methods=['POST'])
@@ -77,7 +84,7 @@ def remove_labels():
         index = int(index)
         session.remove_labels_from_image(index, labels)
 
-    return make_response(jsonify(f'Labels removed successfully'), 200)
+    return make_response(jsonify([f'Labels removed successfully', ]), 200)
 
 
 @app.route('/export_imagenames', methods=['POST'])

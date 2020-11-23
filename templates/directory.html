@@ -53,7 +53,7 @@
 
 <body>
     <main class="mt-3">
-        <div id="images_area" style="padding-left: 8%; padding-right: 2%;">
+        <div id="images_area" style="padding-left: 6%; padding-right: 2%;">
             <div class="mt-3" id="scroller">
                 <template id="image_template">
                     <div class="card mb-3 animated fadeIn shadow-sm"
@@ -77,7 +77,13 @@
         </div>
         <div id="sidebar" class="sidebar">
             <h4>Labeling</h4>
-            <span>Labels for selected images:</span>
+            <div id="cucumbers_area">
+                <template id="cucumber_template">
+                    <button class="cucumber" id="cucumber" type="submit"></button>
+                </template>
+            </div>
+
+            <span style="margin-top: 20px;">Labels for selected images:</span>
             <!-- <button id="load-labels-button" type="submit" title="Show labels">Show labels</button> -->
             <span id="labels"></span>
             <!-- <ul class="sidebar-list">
@@ -194,8 +200,9 @@
             addLabelsButton.disabled = (/^ *$/.test(labelInput.value));
             removeLabelsButton.disabled = (/^ *$/.test(labelInput.value));
         });
-        var downloadLink = document.createElement('a');
-        downloadLink.download = "labels.csv";
+        // TODO: use later for local download
+        // var downloadLink = document.createElement('a');
+        // downloadLink.download = "labels.csv";
 
         var imageTemplate = document.querySelector('#image_template');
         var loaded = document.querySelector("#loaded");
@@ -203,6 +210,9 @@
         var selectCheckbox = document.querySelector("#select-all-checkbox");
         selectCheckbox.addEventListener('change', () => { toggleSelectAll(); });
         const sentinel = document.querySelector('#sentinel');
+
+        var cucumberTemplate = document.querySelector('#cucumber_template');
+        var cucumbersArea = document.querySelector('#cucumbers_area');
 
         var loadCounter = 0;
         var checkboxCounter = 0;
@@ -402,6 +412,29 @@
 
         // Labels part
 
+        function addCucumber(tag, quantity) {
+            let templateClone = cucumberTemplate.content.cloneNode(true);
+            let cucumber = templateClone.querySelector("#cucumber");
+            cucumber.innerHTML = tag + '  ' + quantity;
+            cucumber.addEventListener('click', event => {
+                labelInput.value = cucumber.innerHTML.split('  ')[0];
+            })
+
+            cucumbersArea.appendChild(templateClone);
+        }
+
+        function removeCucumber(tag, checkboxesLen) {
+            document.querySelectorAll("#cucumber").forEach(cucumber => {
+                let cucumberValues = cucumber.innerHTML.split('  ');
+                if (cucumberValues[0] == (tag)) {
+                    if (parseInt(cucumberValues[1]) <= checkboxesLen) { cucumbersArea.removeChild(cucumber); }
+                    else {
+                        cucumber.innerHTML = tag + '  ' + (parseInt(cucumberValues[1]) - checkboxesLen);
+                    }
+                }
+            });
+        }
+
         function editLabels(endpoint) {
             let imageIndexes = [];
             for (let i = 0; i < checkboxes.length; i++) {
@@ -429,7 +462,33 @@
                 headers: new Headers({
                     "content-type": "application/json"
                 })
-            }).then((response) => response.json()).then((data) => { if (data) { alert(data); } });
+            }).then((response) => response.json()).then((data) => {
+                if (data) {
+                    console.log(data);
+                    let labelInputValue = labelInput.value;
+                    let currentLabels = [];
+                    document.querySelectorAll("#cucumber").forEach((cucumber) =>
+                        currentLabels.push(cucumber.innerHTML.split('  ')));
+
+                    if (endpoint.includes('add')) {
+                        let labels = labelInputValue.split(' ');
+                        for (let i = 0; i < labels.length; i++) {
+                            if (!currentLabels.some((label) => label === labels[i][0])) {
+                                addCucumber(labelInputValue, data[1][i]);
+                            }
+                        }
+                    }
+                    else {
+                        let labels = labelInputValue.split(' ');
+                        for (let i = 0; i < labels.length; i++) {
+                            let label = labels[i].trim();
+                            if (labelsSpan.innerHTML.includes(label))
+                                removeCucumber(label, imageIndexes.length);
+                        }
+                    }
+                    alert(data[0]);
+                }
+            });
         }
 
         async function getLabels() {

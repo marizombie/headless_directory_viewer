@@ -184,3 +184,7 @@ img.lazy-image.loaded {
   height: 0px;
   transition: opacity 0.5s linear;
 }
+
+button.cucumber:first-of-type{
+  /* color: #3498DB; */
+}
