@@ -132,13 +132,15 @@
         var magnifierOn = false;
         magnifierToggle.addEventListener('click', event => { magnifierOn = !magnifierOn; });
 
-        const imagesDiv = document.querySelector('#images_area')
+        const imagesDiv = document.querySelector('#images_area');
+        var isSidebarVisible = false;
 
         const sidebar = document.querySelector('#sidebar');
         const sidebarToggle = document.querySelector('#sidebar_toggle');
         sidebarToggle.addEventListener('click', function () {
             sidebar.classList.toggle('show');
             imagesDiv.classList.toggle("move-to-left");
+            isSidebarVisible = !isSidebarVisible;
         });
 
         // Move & load buttons check area
@@ -369,6 +371,7 @@
                                 checkboxCounter -= 1;
                             }
                             selected.innerText = `${checkboxCounter} items selected`;
+                            if (!isSidebarVisible) return;
                             getLabels();
                         });
 
