@@ -59,7 +59,8 @@ def add_labels():
         index = int(index)
         session.add_labels_to_image(index, labels)
 
-    labels_count = [0*len(labels)]
+    labels_count = [0] * (len(labels) + 1)
+
     for image in session.images:
         for index, label in enumerate(labels):
             if label in image.labels:

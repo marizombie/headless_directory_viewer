@@ -467,24 +467,35 @@
                 })
             }).then((response) => response.json()).then((data) => {
                 if (data) {
-                    console.log(data);
                     let labelInputValue = labelInput.value;
                     let currentLabels = [];
-                    document.querySelectorAll("#cucumber").forEach((cucumber) =>
+                    const cucumbers = document.querySelectorAll("#cucumber");
+                    cucumbers.forEach((cucumber) =>
                         currentLabels.push(cucumber.innerHTML.split('  ')));
 
                     if (endpoint.includes('add')) {
-                        let labels = labelInputValue.split(' ');
-                        for (let i = 0; i < labels.length; i++) {
-                            if (!currentLabels.some((label) => label === labels[i][0])) {
-                                addCucumber(labelInputValue, data[1][i]);
+                        let changeHappened = false;
+                        let inputLabels = labelInputValue.split(' ');
+                        for (let i = 0; i < inputLabels.length; i++) {
+                            if (!currentLabels.some((label) => label[0] == inputLabels[i])) {
+                                addCucumber(inputLabels[i], data[1][i]);
+                            }
+                            else {
+                                const labelIndex = currentLabels.findIndex((label) => label[0] == inputLabels[i]);
+                                currentLabels[labelIndex][1] = data[1][i];
+                                changeHappened = true;
+                            }
+                        }
+                        if (changeHappened) {
+                            for (let i = 0; i < cucumbers.length; i++) {
+                                cucumbers[i].innerHTML = currentLabels[i].join('  ');
                             }
                         }
                     }
                     else {
-                        let labels = labelInputValue.split(' ');
-                        for (let i = 0; i < labels.length; i++) {
-                            let label = labels[i].trim();
+                        let inputLabels = labelInputValue.split(' ');
+                        for (let i = 0; i < inputLabels.length; i++) {
+                            let label = inputLabels[i].trim();
                             if (labelsSpan.innerHTML.includes(label))
                                 removeCucumber(label, imageIndexes.length);
                         }
@@ -522,7 +533,6 @@
                 })
             }).then(async (response) => {
                 const res = await response.json();
-                console.log(res)
                 labelsSpan.innerHTML = res;
             });
         }
